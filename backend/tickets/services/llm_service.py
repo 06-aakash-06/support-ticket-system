@@ -1,10 +1,8 @@
 import os
 import json
-from openai import OpenAI
+import requests
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+OPENROUTER_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 def classify_ticket(description: str) -> dict:
@@ -35,41 +33,67 @@ def classify_ticket(description: str) -> dict:
 
 ## OUTPUT FORMAT
 
-Return ONLY valid JSON:
+Return ONLY a valid JSON object. No explanation, no markdown, no extra text.
 
 {{
   "category": "<billing|technical|account|general>",
   "priority": "<low|medium|high|critical>"
 }}
 
-## TICKET DESCRIPTION
+## TICKET DESCRIPTION TO CLASSIFY
 
 {description}
 """
 
     try:
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                # reliable free model
+                "model": "mistralai/mistral-7b-instruct",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+
+                # makes output deterministic and consistent
+                "temperature": 0
+            },
         )
 
-        content = response.choices[0].message.content.strip()
+        result = response.json()
 
-        result = json.loads(content)
+        # handle OpenRouter errors gracefully
+        if "choices" not in result:
+            print("OpenRouter error:", result)
+            return {
+                "category": "general",
+                "priority": "medium"
+            }
 
-        # safety validation
+        content = result["choices"][0]["message"]["content"].strip()
+
+        # sometimes models wrap JSON in ```json blocks
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+
+        parsed = json.loads(content)
+
         valid_categories = {"billing", "technical", "account", "general"}
         valid_priorities = {"low", "medium", "high", "critical"}
 
-        category = result.get("category", "general")
-        priority = result.get("priority", "medium")
+        category = parsed.get("category", "general")
+        priority = parsed.get("priority", "medium")
 
         if category not in valid_categories:
             category = "general"
@@ -79,13 +103,14 @@ Return ONLY valid JSON:
 
         return {
             "category": category,
-            "priority": priority
+            "priority": priority,
         }
 
     except Exception as e:
-        print("LLM ERROR:", e)
+
+        print("OpenRouter exception:", e)
+
         return {
             "category": "general",
-            "priority": "medium"
+            "priority": "medium",
         }
-
