@@ -82,10 +82,10 @@ Return ONLY valid JSON:
             "priority": priority
         }
 
-    except Exception:
-
-        # graceful fallback (assignment requirement)
+    except Exception as e:
+        print("LLM ERROR:", e)
         return {
             "category": "general",
             "priority": "medium"
         }
+
