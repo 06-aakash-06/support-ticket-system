@@ -24,11 +24,21 @@ class TicketListCreateView(generics.ListCreateAPIView):
         "title",
         "description",
     ]
+    def perform_create(self, serializer):
+        description = serializer.validated_data.get("description", "")
+
+        # call LLM classifier
+        result = classify_ticket(description)
+
+        serializer.save(
+            category=result["category"],
+            priority=result["priority"]
+        )
 
 class TicketUpdateView(generics.UpdateAPIView):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-
+    
 class TicketStatsView(APIView):
 
     def get(self, request):
