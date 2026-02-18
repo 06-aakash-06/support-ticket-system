@@ -1,0 +1,19 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: ticket_backend
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./backend:/app
+
+    env_file:
+      - ./backend/.env
+
+    restart: unless-stopped
