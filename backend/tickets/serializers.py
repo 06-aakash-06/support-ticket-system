@@ -3,10 +3,8 @@ from .models import Ticket
 
 
 class TicketSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Ticket
-
         fields = [
             "id",
             "title",
@@ -16,5 +14,4 @@ class TicketSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         ]
-
         read_only_fields = ["id", "created_at"]
