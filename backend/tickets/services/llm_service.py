@@ -7,191 +7,191 @@ OPENROUTER_API_KEY = os.getenv("OPENAI_API_KEY")
 
 def classify_ticket(description: str) -> dict:
 
-prompt = f"""
-You are a senior AI support triage engineer responsible for correctly classifying SaaS support tickets.
+    prompt = f"""
+    You are a senior AI support triage engineer responsible for correctly classifying SaaS support tickets.
 
-Your job is to assign EXACTLY ONE category and EXACTLY ONE priority.
+    Your job is to assign EXACTLY ONE category and EXACTLY ONE priority.
 
-You MUST follow the decision logic strictly. Do NOT guess randomly. Do NOT default to "general" unless absolutely nothing else applies.
+    You MUST follow the decision logic strictly. Do NOT guess randomly. Do NOT default to "general" unless absolutely nothing else applies.
 
-========================================
-STEP 1 — DETERMINE CATEGORY
-========================================
+    ========================================
+    STEP 1 — DETERMINE CATEGORY
+    ========================================
 
-Choose ONE:
+    Choose ONE:
 
-billing
-technical
-account
-general
+    billing
+    technical
+    account
+    general
 
-DETAILED DEFINITIONS:
+    DETAILED DEFINITIONS:
 
-billing
-ONLY use if related to money, payments, invoices, subscriptions, or charges.
+    billing
+    ONLY use if related to money, payments, invoices, subscriptions, or charges.
 
-Examples:
-- charged twice
-- refund request
-- invoice incorrect
-- subscription cancelled unexpectedly
-- payment failed but money deducted
-
-
-technical
-Use if ANY software behavior is broken, incorrect, buggy, slow, glitchy, visually broken, or not working as expected.
-
-This includes:
-- UI bugs
-- broken buttons
-- layout issues
-- performance problems
-- slow loading
-- API errors
-- crashes
-- unexpected behavior
-- features not behaving correctly
-
-Examples:
-- button not aligned
-- dashboard loads slowly
-- dropdown doesn't open
-- error message appears
-- page freezes
-- feature doesn't work properly
-
-IMPORTANT:
-ALL bugs, glitches, UI issues, or incorrect behavior are ALWAYS technical.
-DO NOT classify bugs as general.
+    Examples:
+    - charged twice
+    - refund request
+    - invoice incorrect
+    - subscription cancelled unexpectedly
+    - payment failed but money deducted
 
 
-account
-Use ONLY for single-user account access or identity problems.
+    technical
+    Use if ANY software behavior is broken, incorrect, buggy, slow, glitchy, visually broken, or not working as expected.
 
-Examples:
-- cannot login
-- password reset not working
-- account locked
-- cannot access profile
-- permission denied
+    This includes:
+    - UI bugs
+    - broken buttons
+    - layout issues
+    - performance problems
+    - slow loading
+    - API errors
+    - crashes
+    - unexpected behavior
+    - features not behaving correctly
 
+    Examples:
+    - button not aligned
+    - dashboard loads slowly
+    - dropdown doesn't open
+    - error message appears
+    - page freezes
+    - feature doesn't work properly
 
-general
-Use ONLY if it is:
-
-- feature request
-- suggestion
-- question
-- feedback
-- curiosity
-- informational inquiry
-
-Examples:
-- "can you add dark mode"
-- "how does billing work"
-- "I suggest adding export feature"
-
-NEVER classify bugs as general.
+    IMPORTANT:
+    ALL bugs, glitches, UI issues, or incorrect behavior are ALWAYS technical.
+    DO NOT classify bugs as general.
 
 
-========================================
-STEP 2 — DETERMINE PRIORITY
-========================================
+    account
+    Use ONLY for single-user account access or identity problems.
 
-Choose ONE:
-
-critical
-high
-medium
-low
-
-
-critical
-System unusable, data loss, security breach, ALL users blocked.
-
-Examples:
-- system down
-- data deleted
-- cannot access platform at all
+    Examples:
+    - cannot login
+    - password reset not working
+    - account locked
+    - cannot access profile
+    - permission denied
 
 
-high
-Major functionality broken, user cannot complete core workflow.
+    general
+    Use ONLY if it is:
 
-Examples:
-- cannot submit forms
-- login completely broken
-- payment system failing
+    - feature request
+    - suggestion
+    - question
+    - feedback
+    - curiosity
+    - informational inquiry
 
+    Examples:
+    - "can you add dark mode"
+    - "how does billing work"
+    - "I suggest adding export feature"
 
-medium
-Bug exists but workaround exists, or inconvenience present.
-
-Examples:
-- slow performance
-- occasional errors
-
-
-low
-Cosmetic issues, minor bugs, suggestions, or non-urgent issues.
-
-Examples:
-- alignment issues
-- UI spacing wrong
-- minor visual glitch
-- feature requests
+    NEVER classify bugs as general.
 
 
-========================================
-STEP 3 — STRICT DECISION RULES
-========================================
+    ========================================
+    STEP 2 — DETERMINE PRIORITY
+    ========================================
 
-Follow this EXACT decision order:
+    Choose ONE:
 
-1. If money involved → billing
-2. Else if software behavior incorrect in ANY way → technical
-3. Else if login/account access problem → account
-4. Else → general
-
-
-========================================
-STEP 4 — PRIORITY SIGNAL WORDS
-========================================
-
-critical signals:
-"down", "data loss", "security", "everyone affected"
-
-high signals:
-"cannot", "unable", "broken", "not working"
-
-medium signals:
-"slow", "sometimes", "occasionally"
-
-low signals:
-"minor", "slightly", "alignment", "suggestion", "feature request"
+    critical
+    high
+    medium
+    low
 
 
-========================================
-STEP 5 — OUTPUT FORMAT
-========================================
+    critical
+    System unusable, data loss, security breach, ALL users blocked.
 
-Return ONLY raw JSON.
-
-NO explanation.
-NO markdown.
-NO extra text.
-
-Example:
-
-{{"category": "technical", "priority": "low"}}
+    Examples:
+    - system down
+    - data deleted
+    - cannot access platform at all
 
 
-========================================
-STEP 6 — TICKET DESCRIPTION
-========================================
+    high
+    Major functionality broken, user cannot complete core workflow.
 
-{description}
-"""
+    Examples:
+    - cannot submit forms
+    - login completely broken
+    - payment system failing
+
+
+    medium
+    Bug exists but workaround exists, or inconvenience present.
+
+    Examples:
+    - slow performance
+    - occasional errors
+
+
+    low
+    Cosmetic issues, minor bugs, suggestions, or non-urgent issues.
+
+    Examples:
+    - alignment issues
+    - UI spacing wrong
+    - minor visual glitch
+    - feature requests
+
+
+    ========================================
+    STEP 3 — STRICT DECISION RULES
+    ========================================
+
+    Follow this EXACT decision order:
+
+    1. If money involved → billing
+    2. Else if software behavior incorrect in ANY way → technical
+    3. Else if login/account access problem → account
+    4. Else → general
+
+
+    ========================================
+    STEP 4 — PRIORITY SIGNAL WORDS
+    ========================================
+
+    critical signals:
+    "down", "data loss", "security", "everyone affected"
+
+    high signals:
+    "cannot", "unable", "broken", "not working"
+
+    medium signals:
+    "slow", "sometimes", "occasionally"
+
+    low signals:
+    "minor", "slightly", "alignment", "suggestion", "feature request"
+
+
+    ========================================
+    STEP 5 — OUTPUT FORMAT
+    ========================================
+
+    Return ONLY raw JSON.
+
+    NO explanation.
+    NO markdown.
+    NO extra text.
+
+    Example:
+
+    {{"category": "technical", "priority": "low"}}
+
+
+    ========================================
+    STEP 6 — TICKET DESCRIPTION
+    ========================================
+
+    {description}
+    """
 
     try:
 
