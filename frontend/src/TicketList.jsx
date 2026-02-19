@@ -1,57 +1,44 @@
 import { useEffect, useState } from "react";
 import TicketCard from "./TicketCard";
 
-const API = "http://localhost:8000/api";
+const API = import.meta.env.VITE_API_URL;
 
-function TicketList() {
+
+
+function TicketList({ refreshKey }) {
 
   const [tickets, setTickets] = useState([]);
-  const [search, setSearch] = useState("");
 
   const fetchTickets = async () => {
 
-    const res = await fetch(
-      `${API}/tickets/?search=${search}`
-    );
-
+    const res = await fetch(`${API}/tickets/`);
     const data = await res.json();
     setTickets(data);
+
   };
 
   useEffect(() => {
     fetchTickets();
-  }, [search]);
+  }, [refreshKey]);
 
   return (
 
-    <div style={styles.card}>
+    <div>
 
-      <h3>All Tickets</h3>
+      <h2>All Tickets</h2>
 
-      <input
-        placeholder="Search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
-      {tickets.map(t =>
+      {tickets.map(ticket => (
         <TicketCard
-          key={t.id}
-          ticket={t}
-          onStatusChange={fetchTickets}
+          key={ticket.id}
+          ticket={ticket}
+          onUpdated={fetchTickets}
         />
-      )}
+      ))}
 
     </div>
 
   );
+
 }
 
 export default TicketList;
-
-const styles = {
-  card: {
-    background: "#1e1e1e",
-    padding: "20px",
-  },
-};

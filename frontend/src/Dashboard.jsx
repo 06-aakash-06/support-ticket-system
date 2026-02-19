@@ -12,7 +12,9 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const API = "http://localhost:8000/api";
+const API = import.meta.env.VITE_API_URL;
+
+
 
 const COLORS = ["#6366f1", "#22c55e", "#ef4444", "#f59e0b"];
 
