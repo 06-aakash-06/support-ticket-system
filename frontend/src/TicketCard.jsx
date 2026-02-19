@@ -8,25 +8,26 @@ function TicketCard({ ticket, onUpdated }) {
 
   const updateStatus = async (newStatus) => {
     setLoading(true);
-
     try {
       await fetch(`${API}/tickets/${ticket.id}/`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status: newStatus,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
       });
-
       onUpdated();
     } catch (err) {
       console.error(err);
     }
-
     setLoading(false);
   };
+
+  // Safe truncation logic
+  const maxLength = 160;
+  const isLong = ticket.description.length > maxLength;
+  const displayText =
+    !expanded && isLong
+      ? ticket.description.slice(0, maxLength) + "..."
+      : ticket.description;
 
   return (
     <div style={styles.card}>
@@ -45,21 +46,19 @@ function TicketCard({ ticket, onUpdated }) {
         </select>
       </div>
 
-      {/* DESCRIPTION WITH EXPAND */}
-      <p
-        style={
-          expanded
-            ? styles.descriptionExpanded
-            : styles.descriptionCollapsed
-        }
-        onClick={() => setExpanded(!expanded)}
-      >
-        {ticket.description}
+      {/* DESCRIPTION */}
+      <p style={styles.description}>
+        {displayText}
       </p>
 
-      <div style={styles.expandHint}>
-        {expanded ? "Show less ▲" : "Show more ▼"}
-      </div>
+      {isLong && (
+        <div
+          style={styles.expandHint}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "Show less ▲" : "Show more ▼"}
+        </div>
+      )}
 
       <div style={styles.badges}>
         <span
@@ -150,35 +149,19 @@ const styles = {
     fontSize: "13px",
     appearance: "none",
     cursor: "pointer",
-    transition: "all 0.2s ease",
   },
 
-  /* COLLAPSED (3-line clamp) */
-  descriptionCollapsed: {
+  description: {
     color: "#9ca3af",
-    marginBottom: "6px",
-    lineHeight: "1.5",
-    cursor: "pointer",
-
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-  },
-
-  /* EXPANDED */
-  descriptionExpanded: {
-    color: "#9ca3af",
-    marginBottom: "6px",
-    lineHeight: "1.5",
-    cursor: "pointer",
+    marginBottom: "8px",
+    lineHeight: "1.6",
   },
 
   expandHint: {
     fontSize: "12px",
     color: "#64748b",
-    marginBottom: "16px",
     cursor: "pointer",
+    marginBottom: "16px",
   },
 
   badges: {

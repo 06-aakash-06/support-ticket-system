@@ -96,13 +96,7 @@ function TicketList({ refreshKey }) {
         {tickets.map((ticket) => (
           <TicketCard
             key={ticket.id}
-            ticket={{
-              ...ticket,
-              description:
-                ticket.description.length > 120
-                  ? ticket.description.slice(0, 120) + "..."
-                  : ticket.description,
-            }}
+            ticket={ticket}
             onUpdated={fetchTickets}
           />
         ))}
