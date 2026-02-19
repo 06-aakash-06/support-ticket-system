@@ -1,11 +1,24 @@
 services:
+  db:
+    image: postgres:16
+    container_name: ticket_db
+    restart: always
+
+    environment:
+      POSTGRES_DB: ticket_db
+      POSTGRES_USER: ticket_user
+      POSTGRES_PASSWORD: ticket_pass
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-
+    build: ./backend
     container_name: ticket_backend
+    restart: always
 
     ports:
       - "8000:8000"
@@ -16,4 +29,8 @@ services:
     env_file:
       - ./backend/.env
 
-    restart: unless-stopped
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
