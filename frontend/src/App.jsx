@@ -3,35 +3,60 @@ import { useEffect, useState } from "react";
 const API = "http://localhost:8000/api";
 
 function App() {
+
   const [tickets, setTickets] = useState([]);
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
   const fetchTickets = async () => {
-    const res = await fetch(`${API}/tickets/`);
-    const data = await res.json();
-    setTickets(data);
+    try {
+      const res = await fetch(`${API}/tickets/`);
+      const data = await res.json();
+      setTickets(data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const createTicket = async () => {
-    if (!title || !description) return;
 
-    await fetch(`${API}/tickets/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        status: "open",
-      }),
-    });
+    if (!title || !description) {
+      alert("Title and description required");
+      return;
+    }
 
-    setTitle("");
-    setDescription("");
+    try {
 
-    fetchTickets();
+      const res = await fetch(`${API}/tickets/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          status: "open"
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        console.error(err);
+        alert("Error creating ticket");
+        return;
+      }
+
+      setTitle("");
+      setDescription("");
+
+      fetchTickets();
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+
   };
 
   useEffect(() => {
@@ -39,7 +64,9 @@ function App() {
   }, []);
 
   return (
+
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
+
       <h1>Support Ticket System</h1>
 
       <h2>Create Ticket</h2>
@@ -48,14 +75,19 @@ function App() {
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        style={{ display: "block", marginBottom: "10px", width: "300px" }}
+        style={{ display: "block", marginBottom: "10px", width: "400px" }}
       />
 
       <textarea
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        style={{ display: "block", marginBottom: "10px", width: "300px", height: "100px" }}
+        style={{
+          display: "block",
+          marginBottom: "10px",
+          width: "400px",
+          height: "120px"
+        }}
       />
 
       <button onClick={createTicket}>
@@ -64,24 +96,28 @@ function App() {
 
       <h2>All Tickets</h2>
 
-      {tickets.map((ticket) => (
-        <div
-          key={ticket.id}
-          style={{
-            border: "1px solid gray",
-            padding: "10px",
-            marginBottom: "10px",
-          }}
-        >
+      {tickets.map(ticket => (
+
+        <div key={ticket.id} style={{
+          border: "1px solid gray",
+          padding: "10px",
+          marginBottom: "10px"
+        }}>
+
           <h3>{ticket.title}</h3>
+
           <p>{ticket.description}</p>
 
-          <strong>Category:</strong> {ticket.category} <br />
-          <strong>Priority:</strong> {ticket.priority} <br />
+          <strong>Category:</strong> {ticket.category}<br/>
+          <strong>Priority:</strong> {ticket.priority}<br/>
           <strong>Status:</strong> {ticket.status}
+
         </div>
+
       ))}
+
     </div>
+
   );
 }
 
