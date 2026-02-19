@@ -7,43 +7,42 @@ OPENROUTER_API_KEY = os.getenv("OPENAI_API_KEY")
 
 def classify_ticket(description: str) -> dict:
 
-    prompt = f"""You are an expert support ticket triage system for a SaaS platform. Your job is to analyze support ticket descriptions and classify them accurately so customers get routed to the right team with the right urgency.
+    prompt = f"""You are an expert support ticket triage system for a SaaS platform. Classify the ticket description below into exactly one category and one priority.
 
-## CATEGORIES (choose exactly one)
+## CATEGORIES
 
-- billing — payments, invoices, charges, refunds, subscriptions, pricing, failed transactions
-- technical — bugs, errors, crashes, performance issues, integrations, API problems, features not working
-- account — login issues, password resets, permissions, profile settings, account access, 2FA
-- general — questions, feedback, onboarding, feature requests, anything that doesn't fit above
+- **billing** — payments, invoices, charges, refunds, subscriptions, pricing, failed transactions, upgrade/downgrade
+- **technical** — bugs, errors, crashes, performance issues, API problems, broken features, system outages, SERVICE-WIDE login failures affecting multiple users
+- **account** — login issues for a SINGLE user, password resets, permissions, profile settings, 2FA, SSO, account locked/suspended
+- **general** — questions, feedback, onboarding, feature requests, anything that doesn't clearly fit above
 
-## PRIORITIES (choose exactly one)
+## PRIORITIES
 
-- critical — system is completely down, data loss occurring, security breach, blocking ALL work, revenue directly impacted RIGHT NOW
-- high — major feature broken, significant workflow blocked, affects multiple users, time-sensitive but not total outage
-- medium — partial functionality affected, workaround exists, single user impacted, moderate inconvenience
-- low — general questions, minor UI issues, feature requests, non-urgent feedback, curiosity
+- **critical** — system completely down, data loss, security breach, ALL users blocked, revenue impacted RIGHT NOW, cannot wait
+- **high** — major feature broken for multiple users, significant workflow blocked, time-sensitive, workaround does not exist
+- **medium** — partial functionality affected, single user impacted, workaround exists, not immediately blocking
+- **low** — questions, minor UI issues, feature requests, cosmetic bugs, general curiosity, non-urgent feedback
 
-## CLASSIFICATION RULES
+## TIEBREAKER RULES (read carefully)
 
-1. When in doubt between two priorities, pick the HIGHER one
-2. Keywords like "urgent", "ASAP", "down", "can't work", "lost data" strongly suggest high or critical
-3. If billing AND technical both apply, prefer billing
-4. Vague or very short descriptions default to general + low
-5. Production outages are ALWAYS critical regardless of tone
+1. **Login issues**: if it affects ONE user → `account`. If it affects MULTIPLE users or the whole system → `technical`
+2. **Billing + Technical overlap** → always prefer `billing`
+3. **Account + Technical overlap** → always prefer `technical` if service-wide, `account` if user-specific
+4. **Priority when in doubt** → always pick the HIGHER priority, never lower
+5. **Urgency signals** — words like "urgent", "ASAP", "all users", "everyone", "system down", "can't work", "data loss" → push toward `critical` or `high`
+6. **Production outages** → ALWAYS `critical`, no exceptions, regardless of how calmly it's written
+7. **Feature requests / "would be nice"** → ALWAYS `low`
+8. **Vague or very short descriptions** → `general` + `low`
 
-## OUTPUT FORMAT
+## OUTPUT
 
-Return ONLY a valid JSON object. No explanation, no markdown, no extra text.
+Return ONLY raw JSON. No markdown, no explanation, no extra text whatsoever.
 
-{{
-  "category": "<billing|technical|account|general>",
-  "priority": "<low|medium|high|critical>"
-}}
+{{"category": "<billing|technical|account|general>", "priority": "<low|medium|high|critical>"}}
 
-## TICKET DESCRIPTION TO CLASSIFY
+## TICKET DESCRIPTION
 
-{description}
-"""
+{description}"""
 
     try:
 
