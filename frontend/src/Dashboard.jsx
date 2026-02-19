@@ -10,103 +10,164 @@ import {
   YAxis,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 
 const API = import.meta.env.VITE_API_URL;
 
-
-
 const COLORS = ["#6366f1", "#22c55e", "#ef4444", "#f59e0b"];
 
 function Dashboard() {
+
   const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     fetch(`${API}/tickets/stats/`)
       .then(res => res.json())
-      .then(setStats)
-      .catch(console.error);
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+
   }, []);
 
-  if (!stats) return <div>Loading analytics...</div>;
+  if (loading) {
+    return (
+      <div style={styles.center}>
+        <div style={styles.loading}>Loading analytics...</div>
+      </div>
+    );
+  }
 
-  const priorityData = Object.entries(stats.priority_breakdown).map(
-    ([name, value]) => ({ name, value })
-  );
+  if (!stats) {
+    return (
+      <div style={styles.center}>
+        <div style={styles.error}>Failed to load analytics</div>
+      </div>
+    );
+  }
 
-  const categoryData = Object.entries(stats.category_breakdown).map(
-    ([name, value]) => ({ name, value })
-  );
+  const priorityData =
+    Object.entries(stats.priority_breakdown || {})
+      .map(([name, value]) => ({ name, value }));
+
+  const categoryData =
+    Object.entries(stats.category_breakdown || {})
+      .map(([name, value]) => ({ name, value }));
 
   return (
+
     <div style={styles.container}>
 
-      <h1 style={styles.title}>Analytics Dashboard</h1>
+      {/* HEADER */}
+
+      <div style={styles.header}>
+        <h1 style={styles.title}>Analytics Dashboard</h1>
+        <div style={styles.subtitle}>
+          Real-time support ticket insights
+        </div>
+      </div>
 
       {/* METRIC CARDS */}
-      <div style={styles.cards}>
 
-        <div style={styles.card}>
-          <div style={styles.cardLabel}>Total Tickets</div>
-          <div style={styles.cardValue}>{stats.total_tickets}</div>
-        </div>
+      <div style={styles.cardGrid}>
 
-        <div style={styles.card}>
-          <div style={styles.cardLabel}>Open Tickets</div>
-          <div style={styles.cardValue}>{stats.open_tickets}</div>
-        </div>
+        <StatCard
+          label="Total Tickets"
+          value={stats.total_tickets}
+          color="#6366f1"
+        />
 
-        <div style={styles.card}>
-          <div style={styles.cardLabel}>Avg / Day</div>
-          <div style={styles.cardValue}>
-            {stats.avg_tickets_per_day.toFixed(2)}
-          </div>
-        </div>
+        <StatCard
+          label="Open Tickets"
+          value={stats.open_tickets}
+          color="#22c55e"
+        />
+
+        <StatCard
+          label="Average per Day"
+          value={stats.avg_tickets_per_day.toFixed(2)}
+          color="#f59e0b"
+        />
 
       </div>
 
       {/* CHARTS */}
-      <div style={styles.charts}>
+
+      <div style={styles.chartGrid}>
 
         {/* PRIORITY PIE */}
-        <div style={styles.chartBox}>
-          <h3>Priority Breakdown</h3>
+
+        <div style={styles.chartCard}>
+
+          <div style={styles.chartTitle}>
+            Priority Distribution
+          </div>
 
           <ResponsiveContainer width="100%" height={300}>
+
             <PieChart>
+
               <Pie
                 data={priorityData}
                 dataKey="value"
                 nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
+                outerRadius={110}
+                paddingAngle={3}
               >
+
                 {priorityData.map((entry, index) => (
                   <Cell
                     key={index}
                     fill={COLORS[index % COLORS.length]}
                   />
                 ))}
+
               </Pie>
 
-              <Tooltip />
+              <Tooltip
+                contentStyle={styles.tooltip}
+              />
+
+              <Legend />
+
             </PieChart>
+
           </ResponsiveContainer>
 
         </div>
 
         {/* CATEGORY BAR */}
-        <div style={styles.chartBox}>
-          <h3>Category Breakdown</h3>
+
+        <div style={styles.chartCard}>
+
+          <div style={styles.chartTitle}>
+            Category Distribution
+          </div>
 
           <ResponsiveContainer width="100%" height={300}>
+
             <BarChart data={categoryData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
+
+              <CartesianGrid stroke="#374151" />
+
+              <XAxis
+                dataKey="name"
+                stroke="#9ca3af"
+              />
+
+              <YAxis
+                allowDecimals={false}
+                stroke="#9ca3af"
+              />
+
+              <Tooltip contentStyle={styles.tooltip} />
 
               <Bar
                 dataKey="value"
@@ -115,6 +176,7 @@ function Dashboard() {
               />
 
             </BarChart>
+
           </ResponsiveContainer>
 
         </div>
@@ -122,57 +184,128 @@ function Dashboard() {
       </div>
 
     </div>
+
   );
 }
 
 export default Dashboard;
 
 
+
+/* STAT CARD COMPONENT */
+
+function StatCard({ label, value, color }) {
+
+  return (
+
+    <div style={styles.statCard}>
+
+      <div style={styles.statLabel}>
+        {label}
+      </div>
+
+      <div
+        style={{
+          ...styles.statValue,
+          color: color
+        }}
+      >
+        {value}
+      </div>
+
+    </div>
+
+  );
+
+}
+
+
+
+/* STYLES */
+
 const styles = {
 
   container: {
-    padding: "30px",
-    maxWidth: "1100px",
+    margin: "0 auto",
+  },
+
+  header: {
+    marginBottom: "25px",
   },
 
   title: {
-    marginBottom: "20px",
+    fontSize: "28px",
+    fontWeight: "600",
   },
 
-  cards: {
-    display: "flex",
+  subtitle: {
+    color: "#9ca3af",
+    marginTop: "4px",
+  },
+
+  cardGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
     gap: "20px",
     marginBottom: "30px",
   },
 
-  card: {
-    background: "#1e1e1e",
+  statCard: {
+    background: "#111827",
     padding: "20px",
-    borderRadius: "10px",
-    flex: 1,
+    borderRadius: "12px",
+    border: "1px solid #374151",
   },
 
-  cardLabel: {
+  statLabel: {
+    color: "#9ca3af",
     fontSize: "14px",
-    color: "#aaa",
   },
 
-  cardValue: {
-    fontSize: "28px",
+  statValue: {
+    fontSize: "32px",
     fontWeight: "bold",
+    marginTop: "8px",
   },
 
-  charts: {
-    display: "flex",
+  chartGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
     gap: "20px",
-    flexWrap: "wrap",
   },
 
-  chartBox: {
-    background: "#1e1e1e",
+  chartCard: {
+    background: "#111827",
     padding: "20px",
-    borderRadius: "10px",
-    flex: "1 1 500px",
+    borderRadius: "12px",
+    border: "1px solid #374151",
+  },
+
+  chartTitle: {
+    marginBottom: "15px",
+    fontSize: "16px",
+    fontWeight: "500",
+  },
+
+  tooltip: {
+    background: "#1f2937",
+    border: "none",
+    borderRadius: "6px",
+  },
+
+  center: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "300px",
+  },
+
+  loading: {
+    color: "#9ca3af",
+  },
+
+  error: {
+    color: "#ef4444",
   },
 
 };

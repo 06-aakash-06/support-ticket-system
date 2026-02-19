@@ -1,27 +1,21 @@
-import { useState } from "react";
 import Layout from "./Layout";
 import TicketForm from "./TicketForm";
 import TicketList from "./TicketList";
+import { useState } from "react";
 
 function App() {
 
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const refreshTickets = () => {
+  const handleCreated = () => {
     setRefreshKey(prev => prev + 1);
   };
 
   const ticketsUI = (
 
-    <div style={{
-      maxWidth: "900px",
-      margin: "0 auto",
-      padding: "20px"
-    }}>
+    <div style={styles.container}>
 
-      <TicketForm onCreated={refreshTickets} />
-
-      <div style={{ height: "20px" }} />
+      <TicketForm onCreated={handleCreated} />
 
       <TicketList refreshKey={refreshKey} />
 
@@ -34,3 +28,13 @@ function App() {
 }
 
 export default App;
+
+
+
+const styles = {
+
+  container: {
+    width: "100%",
+  },
+
+};

@@ -127,12 +127,17 @@ const badgeColors = {
 const styles = {
 
   card: {
-    background: "#1e1e1e",
-    padding: "18px",
-    borderRadius: "12px",
-    marginBottom: "16px",
-    border: "1px solid #333"
-  },
+  background: "linear-gradient(145deg, #0f172a, #0b1220)",
+  padding: "28px",
+  borderRadius: "18px",
+  border: "1px solid #1e293b",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
+  width: "100%",
+  boxSizing: "border-box",
+},
+
+
+
 
   header: {
     display: "flex",
@@ -164,12 +169,22 @@ const styles = {
   },
 
   dropdown: {
-    background: "#111",
-    color: "white",
-    border: "1px solid #333",
-    padding: "6px",
-    borderRadius: "6px",
-    cursor: "pointer"
-  }
+  background: "#0f172a",
+  color: "#e2e8f0",
+  border: "1px solid #334155",
+  padding: "8px 12px",
+  borderRadius: "8px",
+  fontSize: "13px",
+  appearance: "none",
+  cursor: "pointer",
+  transition: "all 0.2s ease",
+},
+
+  header: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "16px"
+},
 
 };
