@@ -21,7 +21,7 @@ function TicketCard({ ticket, onUpdated }) {
     setLoading(false);
   };
 
-  // Safe truncation logic
+
   const maxLength = 160;
   const isLong = ticket.description.length > maxLength;
   const displayText =
